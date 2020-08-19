@@ -9,7 +9,7 @@ sub MAIN($discord-token, $perspective-token) {
     my $perspective = API::Perspective.new(:api-key($perspective-token));
 
     my Bool $debug = False;
-    my SetHash[Str] $monitored-channels .= new();
+    my SetHash[Int] $monitored-channels .= new();
 
     $discord.connect;
     await $discord.ready;
