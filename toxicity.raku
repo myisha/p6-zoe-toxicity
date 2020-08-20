@@ -9,7 +9,7 @@ sub MAIN($discord-token, $perspective-token) {
     my $perspective = API::Perspective.new(:api-key($perspective-token));
 
     my Bool $debug = False;
-    my SetHash[Int] $monitored-channels .= new();
+    my SetHash[Str] $monitored-channels .= new();
 
     $discord.connect;
     await $discord.ready;
@@ -19,13 +19,15 @@ sub MAIN($discord-token, $perspective-token) {
             my $guild = $message.channel.guild;
 
             given $message.content {
-                when m/^ "+tdebug" $/ and $guild.get-member($message.author).has-any-permission([ADMINISTRATOR]) {
-                    $debug = !$debug;
-                    $message.channel.send-message(~$debug);
-                }
-                when m/^ "+tmonitor" $/ and $guild.get-member($message.author).has-any-permission([ADMINISTRATOR]) {
-                    $monitored-channels{$message.channel-id} = !$monitored-channels{$message.channel-id};
-                    $message.channel.send-message("<#{$message.channel-id}>" ~ ($monitored-channels{$message.channel-id} ?? ' is now being monitored.' !! ' is no longer being monitored.'));
+                if $guild.get-member($message.author).has-any-permission([ADMINISTRATOR]) {
+                    when m/^ "+tdebug" $/ {
+                        $debug = !$debug;
+                        $message.channel.send-message(~$debug);
+                    }
+                    when m/^ "+tmonitor" $/ {
+                        $monitored-channels{$message.channel-id} = !$monitored-channels{$message.channel-id};
+                        $message.channel.send-message("<#{$message.channel-id}>" ~ ($monitored-channels{$message.channel-id} ?? ' is now being monitored.' !! ' is no longer being monitored.'));
+                    }
                 }
                 default {
                     if $monitored-channels{$message.channel-id} {
